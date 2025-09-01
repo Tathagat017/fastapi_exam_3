@@ -1,8 +1,9 @@
 from datetime import datetime
-from sqlalchemy.orm import relationship
+
 from sqlmodel import Field, Column,SQLModel
 import sqlalchemy.dialects.postgresql as pgsql
 from uuid import UUID,uuid4
+from sqlmodel.main import Relationship
 
 
 class Transaction(SQLModel, table=True):
@@ -17,4 +18,4 @@ class Transaction(SQLModel, table=True):
     recipient_user_id:UUID = Field(foreign_key="user.id")
     created_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
     updated_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    transactions:"User" = relationship(back_populates="transactions")
+    transactions:"User" = Relationship(back_populates="transactions")

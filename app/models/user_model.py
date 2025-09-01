@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from typing import Optional
-from sqlmodel import Field, Column,SQLModel,Relationship
+from sqlmodel import Field, Column,SQLModel
 import sqlalchemy.dialects.postgresql as pgsql
 from uuid import UUID,uuid4
+from sqlmodel.main import Relationship
 
 
 
@@ -17,7 +18,7 @@ class User(SQLModel, table=True):
     last_balance_update:datetime = Field(nullable=False,default=datetime.now())
     created_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
     updated_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    # transactions:list["Transaction"] = Relationship(back_populates="user")
+    transactions:list["Transaction"] = Relationship(back_populates="user")
     
     class Config:
         arbitrary_types_allowed = True
@@ -35,6 +36,6 @@ class Transaction(SQLModel, table=True):
     recipient_user_id:UUID = Field(foreign_key="user.id")
     created_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
     updated_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    # user:list[User] = Relationship(back_populates="transactions")
+    user:list[User] = Relationship(back_populates="transactions")
     class Config:
         arbitrary_types_allowed = True
