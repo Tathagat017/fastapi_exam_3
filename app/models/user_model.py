@@ -11,6 +11,8 @@ import sqlalchemy.dialects.postgresql as pgsql
 class User(SQLModel, table=True):
     # allow SQLAlchemy Mapped[...] / other arbitrary types to be accepted by pydantic-core
     model_config = {"arbitrary_types_allowed": True, "from_attributes": True}
+    # allow redefinition of the table (useful with auto-reload / multiple imports)
+    __table_args__ = {"extend_existing": True}
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     name: str
@@ -23,6 +25,8 @@ class User(SQLModel, table=True):
 class Transaction(SQLModel, table=True):
     # allow SQLAlchemy Mapped[...] / other arbitrary types to be accepted by pydantic-core
     model_config = {"arbitrary_types_allowed": True, "from_attributes": True}
+    # allow redefinition of the table (useful with auto-reload / multiple imports)
+    __table_args__ = {"extend_existing": True}
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="user.id", nullable=False)
