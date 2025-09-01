@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlmodel import Field, Column,SQLModel
 import sqlalchemy.dialects.postgresql as pgsql
 from uuid import UUID,uuid4
-from sqlmodel.main import Relationship
+from sqlmodel import Relationship
 
 
 class Transaction(SQLModel, table=True):

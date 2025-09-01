@@ -1,41 +1,51 @@
+from __future__ import annotations  # allows forward references without quotes
+
 from datetime import datetime
-
+from uuid import UUID, uuid4
 from typing import Optional
-from sqlmodel import Field, Column,SQLModel
-import sqlalchemy.dialects.postgresql as pgsql
-from uuid import UUID,uuid4
-from sqlmodel.main import Relationship
 
+from sqlmodel import SQLModel, Field, Column, Relationship
+import sqlalchemy.dialects.postgresql as pgsql
 
 
 class User(SQLModel, table=True):
-    id:UUID = Field(sa_column=Column(pgsql.UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True))
-    username:str = Field(nullable=False)
-    password:str = Field(nullable=False)
-    email:str = Field(nullable=False)
-    phone_number:Optional[str] = Field(nullable=True)
-    balance:float = Field(nullable=False,default=0)
-    last_balance_update:datetime = Field(nullable=False,default=datetime.now())
-    created_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    updated_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    transactions:list["Transaction"] = Relationship(back_populates="user")
-    
-    class Config:
-        arbitrary_types_allowed = True
- 
+    # allow SQLAlchemy Mapped[...] / other arbitrary types to be accepted by pydantic-core
+    model_config = {"arbitrary_types_allowed": True, "from_attributes": True}
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    name: str
+
+    # Relationships (excluded from Pydantic schema)
+    transactions: list["Transaction"] = Relationship(back_populates="user")
+    received_transactions: list["Transaction"] = Relationship(back_populates="recipient_user")
+
 
 class Transaction(SQLModel, table=True):
-    id:UUID = Field(sa_column=Column(pgsql.UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True))
-    user_id:UUID = Field(foreign_key="user.id")
-    #'CREDIT', 'DEBIT', 'TRANSFER_IN', 'TRANSFER_OUT'
-    transaction_type:str = Field(nullable=False)
-    amount:float = Field(nullable=False,default=0)
-    description:str = Field(sa_column=Column(pgsql.TEXT))
-    reference_transaction_id:UUID = Field(foreign_key="transaction.reference_transaction_id")
-    #recipient user id for transfer transactions
-    recipient_user_id:UUID = Field(foreign_key="user.id")
-    created_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    updated_at:datetime = Field(sa_column=Column(pgsql.TIMESTAMP, default=datetime.now))
-    user:list[User] = Relationship(back_populates="transactions")
-    class Config:
-        arbitrary_types_allowed = True
+    # allow SQLAlchemy Mapped[...] / other arbitrary types to be accepted by pydantic-core
+    model_config = {"arbitrary_types_allowed": True, "from_attributes": True}
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    user_id: UUID = Field(foreign_key="user.id", nullable=False)
+
+    # 'CREDIT', 'DEBIT', 'TRANSFER_IN', 'TRANSFER_OUT'
+    transaction_type: str = Field(nullable=False)
+    amount: float = Field(nullable=False, default=0)
+    description: Optional[str] = Field(default=None, sa_column=Column(pgsql.TEXT))
+
+    # self-referential FK
+    reference_transaction_id: Optional[UUID] = Field(default=None, foreign_key="transaction.id")
+
+    # recipient user for transfer transactions
+    recipient_user_id: Optional[UUID] = Field(default=None, foreign_key="user.id")
+
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    # Relationships (excluded from Pydantic schema)
+    user: "User" = Relationship(back_populates="transactions")
+    recipient_user: "User" = Relationship(back_populates="received_transactions")
+    reference_transaction: "Transaction" = Relationship(
+        back_populates="child_transactions",
+        sa_relationship_kwargs={"remote_side": "Transaction.id"}
+    )
+    child_transactions: list["Transaction"] = Relationship(back_populates="reference_transaction")
