@@ -1,0 +1,12 @@
+[project]
+name = "fastapi-eval-exam"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "fastapi[all]>=0.116.1",
+    "pydantic-settings>=2.10.1",
+    "sqlmodel>=0.0.24",
+    "uvicorn>=0.35.0",
+]
