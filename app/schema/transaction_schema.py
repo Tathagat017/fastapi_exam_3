@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel
-from app.models.transaction_model import Transaction
+from app.models.user_model import Transaction
 from typing import List
 from pydantic import BaseModel
 

@@ -1,0 +1,1 @@
+run : uv run uvicorn app.server:app --reload --port 8010 --access-log
